@@ -16,7 +16,9 @@ class Interval:
     label: int
 
 
-def sample(n_samples: int, probabilities: Iterable[float], method: str) -> Iterable[int]:
+def sample(
+    n_samples: int, probabilities: Iterable[float], method: str
+) -> Iterable[int]:
     """Sample from discrete pd.
 
     Parameters
@@ -51,7 +53,9 @@ class Sampler:
         self.K = None
         self.n = len(self.prob_to_class)
 
+        # for cdf method
         self.intervals = None
+
         if initialize:
             self.compute_alias_tables()
             self.compute_intervals()
@@ -112,7 +116,9 @@ class Sampler:
             underfull_entry = random.sample(underfull, 1)[0]
             underfull.remove(underfull_entry)
             self.K[underfull_entry] = overfull_entry
-            self.U[overfull_entry] = self.U[overfull_entry] + self.U[underfull_entry] - 1
+            self.U[overfull_entry] = (
+                self.U[overfull_entry] + self.U[underfull_entry] - 1
+            )
             exactly_full.add(underfull_entry)
             if math.isclose(self.U[overfull_entry], 1) or self.K[overfull_entry]:
                 exactly_full.add(overfull_entry)
@@ -121,7 +127,7 @@ class Sampler:
             elif self.U[overfull_entry] < 1 and not self.K[overfull_entry]:
                 underfull.add(overfull_entry)
             else:
-                raise ValueError("Not posible")
+                raise ValueError("Not possible")
 
     def alias_method(self, n_samples: int) -> Iterable[int]:
         if not self.U:
@@ -157,13 +163,14 @@ if __name__ == "__main__":
         print(f"\tpython {sys.argv[0]} compare <min_classes> <max_classes>")
         print("To sample with both methods and compare results using a random pd:")
         print(f"\tpython {sys.argv[0]} sample <n_classes> <n_samples>")
+
     elif sys.argv[1] == "compare":
         n_samples = 100
         min_classes = int(sys.argv[2])
         max_classes = int(sys.argv[3])
         alias_times = []
         cdf_times = []
-        prob_vector_sampler = Sampler([1/max_classes] * max_classes, initialize=True)
+        prob_vector_sampler = Sampler([1 / max_classes] * max_classes, initialize=True)
         unnormalized_probs = prob_vector_sampler.sample(max_classes, method="alias")
         for n_classes in range(min_classes, max_classes + 1):
             probs = np.array(unnormalized_probs[:n_classes])
@@ -176,28 +183,44 @@ if __name__ == "__main__":
             sampler.sample(n_samples, "cdf")
             cdf_times.append((time.time() - t0) / n_samples)
         fig, ax = plt.subplots(nrows=1, ncols=1)
-        ax.plot(list(range(min_classes, max_classes + 1)), alias_times, label="alias method")
-        ax.plot(list(range(min_classes, max_classes + 1)), cdf_times, label="cdf method")
+        ax.plot(
+            list(range(min_classes, max_classes + 1)), alias_times, label="alias method"
+        )
+        ax.plot(
+            list(range(min_classes, max_classes + 1)), cdf_times, label="cdf method"
+        )
         ax.legend()
         fig.savefig("comparison.png")
         plt.close(fig)
 
     elif sys.argv[1] == "sample":
         from collections import Counter
+
         vector_length = int(sys.argv[2])
         n_samples = int(sys.argv[3])
-        prob_vector_sampler = Sampler([1/vector_length] * vector_length, initialize=True)
+        prob_vector_sampler = Sampler(
+            [1 / vector_length] * vector_length, initialize=True
+        )
         probs = np.array(prob_vector_sampler.sample(vector_length, method="alias"))
         probs = probs / np.sum(probs)
         sampler = Sampler(probs)
         print(sampler.prob_to_class)
         alias_results = Counter(sampler.alias_method(n_samples))
         cdf_results = Counter(sampler.bruteforce_cdf_method(n_samples))
+        expected_counts = []
         for i, probs in sampler.prob_to_class.items():
             print(f"Class {i}")
             print(f"\tProbability: {probs:.6f}")
-            print(f"\tExpected count: {math.floor(n_samples * probs)}")
+            expected_counts.append(math.floor(n_samples * probs))
+            print(f"\tExpected count: {expected_counts[-1]}")
             print(f"\tAlias method count: {alias_results[i]}")
             print(f"\tcdf method count: {cdf_results[i]}")
+        fig, ax = plt.subplots()
+        ax.plot(list(range(1, vector_length + 1)), expected_counts, "-X", label="expected counts", )
+        ax.plot(list(range(1, vector_length + 1)), [alias_results[i] for i in range(1, vector_length + 1)], "-o", label="Alias method counts")
+        ax.plot(list(range(1, vector_length + 1)), [cdf_results[i] for i in range(1, vector_length + 1)], "-s", label="cdf counts")
+        ax.legend(loc="upper right")
+        fig.savefig("sample.png")
+        plt.close(fig)
     else:
         print("Option not recognized, exiting.")

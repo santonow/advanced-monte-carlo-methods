@@ -24,6 +24,9 @@ Looking at this plot it is clear that cdf method takes linear time relative to t
 number of classes, whereas Alias method takes constant (O(1)) time relative to the number of classes
 (the length of probability vector).
 
+It is worth noting that Alias method takes O(n) preprocessing time, whereas cdf method in principle doesn't
+(although in this implementation the intervals are sorted, so the "biggest" is checked first.)
+
 To create a comparison between each method in terms of their validity
 (i.e. if the method's results are roughly the same and consistent with the
 probability vector specified) use the following script call:
@@ -34,28 +37,48 @@ python exercise1.py sample <n_classes> <n_samples>
 For example following call: `python exercise1.py sample 4 10000` will output this:
 ```python
 Class 1
-        Probability: 0.400000
-        Expected count: 4000
-        Alias method count: 4045
-        cdf method count: 4040
+        Probability: 0.222222
+        Expected count: 2222
+        Alias method count: 2228
+        cdf method count: 2163
 Class 2
-        Probability: 0.300000
-        Expected count: 3000
-        Alias method count: 2947
-        cdf method count: 2979
+        Probability: 0.185185
+        Expected count: 1851
+        Alias method count: 1799
+        cdf method count: 1824
 Class 3
-        Probability: 0.200000
-        Expected count: 2000
-        Alias method count: 1989
-        cdf method count: 2015
+        Probability: 0.074074
+        Expected count: 740
+        Alias method count: 738
+        cdf method count: 793
 Class 4
-        Probability: 0.100000
-        Expected count: 1000
-        Alias method count: 1019
-        cdf method count: 966
+        Probability: 0.111111
+        Expected count: 1111
+        Alias method count: 1141
+        cdf method count: 1142
+Class 5
+        Probability: 0.148148
+        Expected count: 1481
+        Alias method count: 1453
+        cdf method count: 1496
+Class 6
+        Probability: 0.037037
+        Expected count: 370
+        Alias method count: 377
+        cdf method count: 373
+Class 7
+        Probability: 0.222222
+        Expected count: 2222
+        Alias method count: 2264
+        cdf method count: 2209
 ```
 
-Usage as a package:
+It will also create a following image `sample.png`:
+![sample.png](sample.png)
+
+It's clear that both method sample from correct distribution.
+
+#### Usage as a package:
 ```python
 from exercise1 import Sampler, sample
 import numpy as np
@@ -66,9 +89,10 @@ print(sampler.sample(n_samples=10, method="alias"))
 print(sampler.sample(n_samples=10, method="cdf"))
 
 # using a function
-
 print(sample(n_samples=10, probabilities=[0.2, 0.2, 0.3, 0.1], method="alias"))
 print(sample(n_samples=10, probabilities=[0.2, 0.2, 0.3, 0.1], method="cdf"))
+
+
 
 # creating random probability vectors using this class (used in `compare` and `sample` scripts):
 
