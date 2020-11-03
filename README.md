@@ -58,6 +58,7 @@ Class 4
 Usage as a package:
 ```python
 from exercise1 import Sampler, sample
+import numpy as np
 
 # using a class
 sampler = Sampler(probabilities=[0.2, 0.2, 0.3, 0.1])
@@ -68,5 +69,14 @@ print(sampler.sample(n_samples=10, method="cdf"))
 
 print(sample(n_samples=10, probabilities=[0.2, 0.2, 0.3, 0.1], method="alias"))
 print(sample(n_samples=10, probabilities=[0.2, 0.2, 0.3, 0.1], method="cdf"))
+
+# creating random probability vectors using this class (used in `compare` and `sample` scripts):
+
+vector_length = 100
+# just specifying a uniform distribution
+prob_vector_sampler = Sampler([1/vector_length] * vector_length, initialize=True)
+probs = np.array(prob_vector_sampler.sample(vector_length, method="alias"))
+# the vector sums to one now, making it a valid pdf
+probs = probs / np.sum(probs)
 ```
 
